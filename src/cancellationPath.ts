@@ -2,8 +2,6 @@ import type * as rpc from 'vscode-jsonrpc/browser';
 
 const pathPrefix = '/@cancellation@/';
 
-export const cancellationScope = `.${pathPrefix}`;
-
 export function isCancellationPath(path: string): boolean {
     return path.includes(pathPrefix);
 }
