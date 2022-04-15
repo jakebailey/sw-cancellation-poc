@@ -16,7 +16,7 @@ function logThrow(m: string): never {
 
 if (!navigator.serviceWorker) {
     logThrow('Service workers are not available');
-}   
+}
 
 log('registering service worker');
 const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
@@ -31,14 +31,13 @@ if (reg.installing) {
     logThrow('waiting for service worker');
 } else if (reg.active) {
     if (!navigator.serviceWorker.controller) {
-        logThrow(
-            "The service worker claims to be active, but can't be controlled, likely due to a Ctrl+Shift+R. Try reloading."
-        );
+        logThrow("The service worker can't be contacted, likely due to a Ctrl+Shift+R. Try reloading.");
     }
 } else {
     logThrow('no service worker');
 }
 
+log('starting web worker');
 const worker = new Worker('./worker.js');
 
 const connection = rpc.createMessageConnection(
