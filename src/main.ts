@@ -16,7 +16,7 @@ function logThrow(m: string): never {
 
 if (!navigator.serviceWorker) {
     logThrow('Service workers are not available');
-}
+}   
 
 log('registering service worker');
 const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
@@ -31,9 +31,9 @@ if (reg.installing) {
     logThrow('waiting for service worker');
 } else if (reg.active) {
     if (!navigator.serviceWorker.controller) {
-        // Page was probably reloaded with Ctrl+Shift+R, force a page reload to bring the SW back.
-        window.location.reload();
-        logThrow('waiting for service worker');
+        logThrow(
+            "The service worker claims to be active, but can't be controlled, likely due to a Ctrl+Shift+R. Try reloading."
+        );
     }
 } else {
     logThrow('no service worker');
