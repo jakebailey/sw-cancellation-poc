@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <title>Service worker cancellation proof-of-concept</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+        <style>
+            :root {
+                --background-body: #303030;
+                --background: #303030;
+                --background-alt: #303030;
+                --button-hover: #444;
+            }
+            h1 {
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Service worker cancellation proof-of-concept</h1>
+
+        <p>
+            This is a proof-of-concept for cancellation using service workers. It works by having the service worker
+            intercept requests to the URLs <code>/@cancellation@/*</code>, which effectively turns the service worker
+            into an HTTP server.
+        </p>
+
+        <p>
+            On the worker side, a synchronous HTTP call can be used to check for cancellation, which allows
+            <code>isCancellationRequested</code> checks to be made without waiting for a cancellation message to be read
+            from the incoming stream (which may not be possible if the current operation is synchronous.)
+        </p>
+
+        <p>The function to check for cancellation looks roughly like:</p>
+
+        <pre>
+    function isCancellationRequested(id: rpc.CancellationId): boolean {
+        const request = new XMLHttpRequest();
+        request.open('GET', `/@cancellation@/${id}`, /* async */ false);
+        request.send();
+        return request.status === 200;
+    }
+        </pre>
+
+        <p>
+            Below is a console log of the page and a worker communicating over JSON-RPC, making and handling a few
+            requests to a number adder handler.
+        </p>
+
+        <br />
+
+        <pre id="log"></pre>
+    </body>
+
+    <script type="module" src="./main.js"></script>
+</html>
