@@ -23,11 +23,32 @@ function cancelWithHttp(id: rpc.CancellationId): void {
     request.send();
 }
 
+// For the below, see: https://github.com/microsoft/vscode-languageserver-node/blob/dca3c1a04797aaaa7d48060cca38b16efdf4392f/jsonrpc/src/common/cancellation.ts
+
+const shortcutEvent: rpc.Event<any> = Object.freeze(function (callback: Function, context?: any): any {
+    const handle = setTimeout(callback.bind(context), 0);
+    return {
+        dispose() {
+            clearTimeout(handle);
+        },
+    };
+});
+
 class Token implements rpc.CancellationToken {
     private _isCanceled = false;
     private _emitter?: rpc.Emitter<any>;
 
     constructor(private _id: rpc.CancellationId) {}
+
+    public cancel() {
+        if (!this._isCanceled) {
+            this._isCanceled = true;
+            if (this._emitter) {
+                this._emitter.fire(undefined);
+                this.dispose();
+            }
+        }
+    }
 
     get isCancellationRequested(): boolean {
         if (this._isCanceled) {
@@ -38,27 +59,16 @@ class Token implements rpc.CancellationToken {
     }
 
     get onCancellationRequested(): rpc.Event<any> {
+        if (this._isCanceled) {
+            return shortcutEvent;
+        }
         if (!this._emitter) {
-            this._emitter = new rpc.Emitter();
+            this._emitter = new rpc.Emitter<any>();
         }
         return this._emitter.event;
     }
 
-    cancel() {
-        if (!this._isCanceled) {
-            this._isCanceled = true;
-            if (this._emitter) {
-                this._emitter.fire(undefined);
-                this._disposeEmitter();
-            }
-        }
-    }
-
-    dispose(): void {
-        this._disposeEmitter();
-    }
-
-    private _disposeEmitter() {
+    public dispose(): void {
         if (this._emitter) {
             this._emitter.dispose();
             this._emitter = undefined;
@@ -67,7 +77,7 @@ class Token implements rpc.CancellationToken {
 }
 
 class TokenSource implements rpc.AbstractCancellationTokenSource {
-    private _token: rpc.CancellationToken | undefined;
+    private _token?: rpc.CancellationToken;
 
     constructor(private _id: rpc.CancellationId) {}
 
