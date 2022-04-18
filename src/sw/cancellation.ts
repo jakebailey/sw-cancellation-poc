@@ -12,6 +12,8 @@ function isCancellationRequested(id: rpc.CancellationId): boolean {
 
 function cancelWithMessage(id: rpc.CancellationId): void {
     const message: SetCanceledEventData = { type: 'setCanceled', id };
+    // Note: this only works outside of a worker; for a version that works inside workers,
+    // see cancelWithHttp.
     globalThis?.navigator?.serviceWorker.controller?.postMessage(message);
 }
 
