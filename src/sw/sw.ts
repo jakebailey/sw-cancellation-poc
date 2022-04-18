@@ -57,7 +57,7 @@ self.addEventListener('fetch', (e) => {
             case 'GET':
                 e.respondWith(getCanceledResponse(pathWithClient));
                 break;
-            // Alternative cancellation triggering method; see cancellation.ts
+            // Alternative cancellation triggering method; see page.ts
             case 'POST':
                 e.respondWith(setCanceledResponse(pathWithClient));
                 break;

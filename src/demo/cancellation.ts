@@ -1,30 +1,5 @@
 import * as rpc from 'vscode-jsonrpc/browser';
 
-import { cancellationPath, SetCanceledEventData } from './common';
-
-function isCancellationRequested(id: rpc.CancellationId): boolean {
-    const path = cancellationPath(id);
-    const request = new XMLHttpRequest();
-    request.open('GET', path, /* async */ false);
-    request.send();
-    return request.status === 200;
-}
-
-function cancelWithMessage(id: rpc.CancellationId): void {
-    const message: SetCanceledEventData = { type: 'setCanceled', id };
-    // Note: this only works outside of a worker; for a version that works inside workers,
-    // see cancelWithHttp.
-    globalThis?.navigator?.serviceWorker.controller?.postMessage(message);
-}
-
-// Alternative method for triggering cancellation via a POST request to the service worker.
-function cancelWithHttp(id: rpc.CancellationId): void {
-    const path = cancellationPath(id);
-    const request = new XMLHttpRequest();
-    request.open('POST', path); // OK to be async
-    request.send();
-}
-
 // For the below, see: https://github.com/microsoft/vscode-languageserver-node/blob/dca3c1a04797aaaa7d48060cca38b16efdf4392f/jsonrpc/src/common/cancellation.ts
 
 const shortcutEvent: rpc.Event<any> = Object.freeze(function (callback: Function, context?: any): any {
@@ -40,7 +15,7 @@ class Token implements rpc.CancellationToken {
     private _isCanceled = false;
     private _emitter?: rpc.Emitter<any>;
 
-    constructor(private _id: rpc.CancellationId) {}
+    constructor(private _isCancellationRequested: () => boolean) {}
 
     public cancel() {
         if (!this._isCanceled) {
@@ -57,7 +32,7 @@ class Token implements rpc.CancellationToken {
             return true;
         }
 
-        return (this._isCanceled = isCancellationRequested(this._id));
+        return (this._isCanceled = this._isCancellationRequested());
     }
 
     get onCancellationRequested(): rpc.Event<any> {
@@ -81,10 +56,10 @@ class Token implements rpc.CancellationToken {
 class TokenSource implements rpc.AbstractCancellationTokenSource {
     private _token?: rpc.CancellationToken;
 
-    constructor(private _id: rpc.CancellationId) {}
+    constructor(private _isCancellationRequested: () => boolean) {}
 
     get token(): rpc.CancellationToken {
-        return (this._token ??= new Token(this._id));
+        return (this._token ??= new Token(this._isCancellationRequested));
     }
 
     cancel(): void {
@@ -104,17 +79,22 @@ class TokenSource implements rpc.AbstractCancellationTokenSource {
     }
 }
 
-export class SwCancellationReceiver implements rpc.CancellationReceiverStrategy {
-    createCancellationTokenSource(id: rpc.CancellationId): rpc.AbstractCancellationTokenSource {
-        return new TokenSource(id);
-    }
+export function createReceiver(
+    isCancellationRequested: (id: rpc.CancellationId) => boolean
+): rpc.CancellationReceiverStrategy {
+    return {
+        createCancellationTokenSource: (id) => new TokenSource(() => isCancellationRequested(id)),
+    };
 }
 
-export class SwCancellationSender implements rpc.CancellationSenderStrategy {
-    sendCancellation(_: rpc.MessageConnection, id: rpc.CancellationId): void {
-        cancelWithMessage(id);
-        // cancel(id);
-    }
-
-    cleanup(_: rpc.CancellationId): void {}
+export function createSender(
+    sendCancellation: (id: rpc.CancellationId) => void,
+    cleanup?: (id: rpc.CancellationId) => void,
+    dispose?: () => void
+): rpc.CancellationSenderStrategy {
+    return {
+        sendCancellation: (_conn, id) => sendCancellation(id),
+        cleanup: cleanup ?? (() => {}),
+        dispose,
+    };
 }

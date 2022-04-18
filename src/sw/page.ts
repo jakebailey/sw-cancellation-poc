@@ -2,8 +2,9 @@
 
 import * as rpc from 'vscode-jsonrpc/browser';
 
+import { createSender } from '../demo/cancellation';
 import { log, logThrow, runClient } from '../demo/page';
-import { SwCancellationSender } from './cancellation';
+import { cancellationPath, SetCanceledEventData } from './common';
 
 if (!navigator.serviceWorker) {
     logThrow('Service workers are not available');
@@ -40,7 +41,23 @@ async function run() {
         // RPC-based cancellation when receiving requests.
         {
             receiver: rpc.CancellationReceiverStrategy.Message,
-            sender: new SwCancellationSender(),
+            sender: createSender(sendCancellationMessage),
+            // sender: createSender(sendCancellationRequest),
         }
     );
+}
+
+function sendCancellationMessage(id: rpc.CancellationId): void {
+    const message: SetCanceledEventData = { type: 'setCanceled', id };
+    // Note: this only works outside of a worker; for a version that works inside workers,
+    // see cancelWithHttp.
+    globalThis.navigator.serviceWorker.controller?.postMessage(message);
+}
+
+// Alternative method for triggering cancellation via a POST request to the service worker.
+function sendCancellationRequest(id: rpc.CancellationId): void {
+    const path = cancellationPath(id);
+    const request = new XMLHttpRequest();
+    request.open('POST', path); // OK to be async
+    request.send();
 }
