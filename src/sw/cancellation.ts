@@ -100,4 +100,3 @@ export class SwCancellationSender implements rpc.CancellationSenderStrategy {
 
     cleanup(_: rpc.CancellationId): void {}
 }
-

@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
+import { debug } from '../debug';
 import { cancellationPath, isCancellationPath } from './cancellationPath';
-import { debug } from './debug';
 
 declare const self: ServiceWorkerGlobalScope;
 export {};

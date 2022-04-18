@@ -11,6 +11,10 @@ esbuild.build({
     format: 'esm',
     target: 'esnext',
     minify: true,
-    entryPoints: ['src/main.ts', 'src/sw.ts', 'src/worker.ts'],
+    entryPoints: {
+        'sw-main': 'src/sw/main.ts',
+        sw: 'src/sw/sw.ts',
+        'sw-worker': 'src/sw/worker.ts',
+    },
     ...argv,
 });
