@@ -1,12 +1,6 @@
 {
+    "extends": "@tsconfig/node14/tsconfig.json",
     "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
-        "lib": ["esnext"],
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
         "moduleResolution": "node",
         "noEmit": true,
         "checkJs": true

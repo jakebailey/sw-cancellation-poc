@@ -3,18 +3,20 @@ import yargs from 'yargs-parser';
 
 const { _, ...argv } = yargs(process.argv.slice(2)) || {};
 
-esbuild.build({
-    logLevel: 'info',
-    bundle: true,
-    outdir: 'public',
-    sourcemap: true,
-    format: 'esm',
-    target: 'esnext',
-    minify: true,
-    entryPoints: {
-        'sw-page': 'src/sw/page.ts',
-        sw: 'src/sw/sw.ts',
-        'sw-worker': 'src/sw/worker.ts',
-    },
-    ...argv,
-});
+esbuild
+    .build({
+        logLevel: 'info',
+        bundle: true,
+        outdir: 'public',
+        sourcemap: true,
+        format: 'iife',
+        target: 'es2020',
+        minify: true,
+        entryPoints: {
+            sw: 'src/sw/sw.ts',
+            'sw-page': 'src/sw/page.ts',
+            'sw-worker': 'src/sw/worker.ts',
+        },
+        ...argv,
+    })
+    .catch(() => process.exit(1));
