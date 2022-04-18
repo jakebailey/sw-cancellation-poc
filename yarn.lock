@@ -74,6 +74,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^12.20.48":
+  version: 12.20.48
+  resolution: "@types/node@npm:12.20.48"
+  checksum: 48bd705bda1af2332c50fb24819bba7b0eac791b07c24c098c39b10940170a53bd3c4755aedc3409c7114c539f1f86ea657aa6838d164fd135e3b89b9f9aa772
+  languageName: node
+  linkType: hard
+
+"@types/yargs-parser@npm:^21.0.0":
+  version: 21.0.0
+  resolution: "@types/yargs-parser@npm:21.0.0"
+  checksum: b2f4c8d12ac18a567440379909127cf2cec393daffb73f246d0a25df36ea983b93b7e9e824251f959e9f928cbc7c1aab6728d0a0ff15d6145f66cec2be67d9a2
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/eslint-plugin@npm:^5.19.0":
   version: 5.19.0
   resolution: "@typescript-eslint/eslint-plugin@npm:5.19.0"
@@ -2014,6 +2028,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sw-cancellation-poc@workspace:."
   dependencies:
+    "@types/node": ^12.20.48
+    "@types/yargs-parser": ^21.0.0
     "@typescript-eslint/eslint-plugin": ^5.19.0
     "@typescript-eslint/parser": ^5.19.0
     esbuild: ^0.14.36
@@ -2026,6 +2042,7 @@ __metadata:
     shx: ^0.3.4
     typescript: ^4.6.3
     vscode-jsonrpc: ^6.0.0
+    yargs-parser: ^21.0.1
   languageName: unknown
   linkType: soft
 
@@ -2213,6 +2230,13 @@ __metadata:
   version: 20.2.9
   resolution: "yargs-parser@npm:20.2.9"
   checksum: 8bb69015f2b0ff9e17b2c8e6bfe224ab463dd00ca211eece72a4cd8a906224d2703fb8a326d36fdd0e68701e201b2a60ed7cf81ce0fd9b3799f9fe7745977ae3
+  languageName: node
+  linkType: hard
+
+"yargs-parser@npm:^21.0.1":
+  version: 21.0.1
+  resolution: "yargs-parser@npm:21.0.1"
+  checksum: c3ea2ed12cad0377ce3096b3f138df8267edf7b1aa7d710cd502fe16af417bafe4443dd71b28158c22fcd1be5dfd0e86319597e47badf42ff83815485887323a
   languageName: node
   linkType: hard
 

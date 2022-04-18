@@ -5,8 +5,8 @@
     "description": "PoC of service worker based synchronous cancellation tokens",
     "type": "module",
     "scripts": {
-        "build": "esbuild --bundle --outdir=public --sourcemap --format=esm --target=esnext --minify src/main.ts src/sw.ts src/worker.ts",
-        "watch": "yarn run build --watch",
+        "build": "node scripts/build.js",
+        "watch": "node scripts/build.js --watch",
         "serve": "serve --cors -l 5000 public & lt -p 5000",
         "clean": "shx rm -rf public/\\*.js public/\\*.js.map"
     },
@@ -17,6 +17,8 @@
         "vscode-jsonrpc": "^6.0.0"
     },
     "devDependencies": {
+        "@types/node": "^12.20.48",
+        "@types/yargs-parser": "^21.0.0",
         "@typescript-eslint/eslint-plugin": "^5.19.0",
         "@typescript-eslint/parser": "^5.19.0",
         "esbuild": "^0.14.36",
@@ -27,6 +29,7 @@
         "prettier": "^2.6.2",
         "serve": "^13.0.2",
         "shx": "^0.3.4",
-        "typescript": "^4.6.3"
+        "typescript": "^4.6.3",
+        "yargs-parser": "^21.0.1"
     }
 }

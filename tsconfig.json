@@ -7,6 +7,9 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "node"
-    }
+        "moduleResolution": "node",
+        "noEmit": true,
+        "checkJs": true
+    },
+    "include": ["src", "scripts"]
 }
