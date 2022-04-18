@@ -2,8 +2,8 @@
 
 import * as rpc from 'vscode-jsonrpc/browser';
 
-import { createReceiver } from '../demo/cancellation';
-import { runServer } from '../demo/worker';
+import { createReceiver } from '../shared/cancellation/receiver';
+import { runServer } from '../shared/worker';
 import { cancellationPath } from './common';
 
 function isCancellationRequested(id: rpc.CancellationId): boolean {

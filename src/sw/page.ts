@@ -2,8 +2,8 @@
 
 import * as rpc from 'vscode-jsonrpc/browser';
 
-import { createSender } from '../demo/cancellation';
-import { log, logThrow, runClient } from '../demo/page';
+import { createSender } from '../shared/cancellation/sender';
+import { log, logThrow, runClient } from '../shared/page';
 import { cancellationPath, SetCanceledEventData } from './common';
 
 if (!navigator.serviceWorker) {
