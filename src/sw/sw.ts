@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import { debug } from '../debug';
-import { cancellationPath, isCancellationPath } from './cancellationPath';
+import { cancellationPath, isCancellationPath, SetCanceledEvent } from './common';
 
 declare const self: ServiceWorkerGlobalScope;
 export {};
@@ -42,15 +42,8 @@ self.addEventListener('activate', (e) => {
     });
 });
 
-function isClientSource(source: ExtendableMessageEvent['source']): source is Client {
-    if (source && typeof (source as Client).id === 'string') {
-        return true;
-    }
-    return false;
-}
-
 self.addEventListener('message', (e) => {
-    if (e.data.type === 'setCanceled' && isClientSource(e.source)) {
+    if (SetCanceledEvent.is(e)) {
         setCanceled(cancellationPath(e.data.id, e.source.id));
     }
 });
@@ -64,6 +57,7 @@ self.addEventListener('fetch', (e) => {
             case 'GET':
                 e.respondWith(getCanceledResponse(pathWithClient));
                 break;
+            // Alternative cancellation triggering method; see cancellation.ts
             case 'POST':
                 e.respondWith(setCanceledResponse(pathWithClient));
                 break;

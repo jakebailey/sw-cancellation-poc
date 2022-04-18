@@ -1,6 +1,6 @@
 import * as rpc from 'vscode-jsonrpc/browser';
 
-import { cancellationPath } from './cancellationPath';
+import { cancellationPath, SetCanceledEventData } from './common';
 
 function isCancellationRequested(id: rpc.CancellationId): boolean {
     const path = cancellationPath(id);
@@ -10,7 +10,13 @@ function isCancellationRequested(id: rpc.CancellationId): boolean {
     return request.status === 200;
 }
 
-function cancel(id: rpc.CancellationId): void {
+function cancelWithMessage(id: rpc.CancellationId): void {
+    const message: SetCanceledEventData = { type: 'setCanceled', id };
+    globalThis?.navigator?.serviceWorker.controller?.postMessage(message);
+}
+
+// Alternative method for triggering cancellation via a POST request to the service worker.
+function cancelWithHttp(id: rpc.CancellationId): void {
     const path = cancellationPath(id);
     const request = new XMLHttpRequest();
     request.open('POST', path); // OK to be async
@@ -94,8 +100,8 @@ export class SwCancellationReceiver implements rpc.CancellationReceiverStrategy 
 
 export class SwCancellationSender implements rpc.CancellationSenderStrategy {
     sendCancellation(_: rpc.MessageConnection, id: rpc.CancellationId): void {
+        cancelWithMessage(id);
         // cancel(id);
-        globalThis?.navigator?.serviceWorker.controller?.postMessage({ type: 'setCanceled', id });
     }
 
     cleanup(_: rpc.CancellationId): void {}
