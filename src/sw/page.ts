@@ -2,7 +2,7 @@
 
 import * as rpc from 'vscode-jsonrpc/browser';
 
-import { log, logThrow, runClient } from '../demo/main';
+import { log, logThrow, runClient } from '../demo/page';
 import { SwCancellationSender } from './cancellation';
 
 if (!navigator.serviceWorker) {

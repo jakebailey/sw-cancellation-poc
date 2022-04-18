@@ -12,7 +12,7 @@ esbuild.build({
     target: 'esnext',
     minify: true,
     entryPoints: {
-        'sw-main': 'src/sw/main.ts',
+        'sw-page': 'src/sw/page.ts',
         sw: 'src/sw/sw.ts',
         'sw-worker': 'src/sw/worker.ts',
     },
