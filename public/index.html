@@ -13,6 +13,9 @@
                     --background-alt: #303030;
                     --button-hover: #444;
                 }
+                #diagram {
+                    filter: invert(81.25%); /* (0xFF-0x30)/0xFF */
+                }
             }
             h1 {
                 text-align: center;
@@ -22,6 +25,10 @@
 
     <body>
         <h1>Service worker cancellation proof-of-concept</h1>
+
+        <p>
+            <img id="diagram" src="./diagram.png" alt="Diagram of service worker based cancellation implementation" />
+        </p>
 
         <p>
             This is a proof-of-concept for cancellation using service workers. It works by having the service worker
