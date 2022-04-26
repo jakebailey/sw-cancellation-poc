@@ -65,9 +65,13 @@ self.addEventListener('activate', (e) => {
         // TODO: figure out the right semantics here. Service workers are "sticky",
         // in that an old service worker will just stick around until all of its pages
         // are closed, before the new worker is even able to touch those pages.
-        // We need a way to force an old service worker to exit once it has no pending
-        // RPC requests. For cancellation, we don't have to worry about that, since
-        // it's not the end of the world to kill a service worker or delete its state.
+        // The general reasoning is that a service worker with a specific version
+        // should not be able to affect pages which did not request a service worker
+        // of that version. Maybe this is okay; the main thing is that we want to ensure
+        // that the frontend page code (even after a reload) can assume that it's paired
+        // with the correct version of the service worker.
+        // See also: https://web.dev/service-worker-lifecycle/
+        //           https://github.com/w3c/ServiceWorker/issues/1296
 
         // Grab control of any uncontrolled pages. Normally, a service worker would
         // only grab control of pages after a reload, but we want control the moment
