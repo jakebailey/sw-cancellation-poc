@@ -44,21 +44,21 @@ export async function runClient(worker: Worker, cancellationStrategy: rpc.Cancel
     log();
 
     await timeit(async () => {
-        log('addNumbersSlowRequest(1, 2)');
+        log('addNumbersSlow(1, 2)');
         log(`result = ${await connection.sendRequest(addNumbersSlowRequest, 1, 2)}`);
     });
 
     log();
 
-    const tokenSource = new rpc.CancellationTokenSource();
-    setTimeout(() => {
-        log('triggering cancellation');
-        tokenSource.cancel();
-    }, 1000);
-
     await timeit(async () => {
+        const tokenSource = new rpc.CancellationTokenSource();
+        setTimeout(() => {
+            log('triggering cancellation');
+            tokenSource.cancel();
+        }, 1000);
+
         try {
-            log('addNumbersSlowRequest(1, 2) with cancellation after 1 second');
+            log('addNumbersSlow(1, 2) with cancellation after 1 second');
             const result = await connection.sendRequest(addNumbersSlowRequest, 1, 2, tokenSource.token);
             log(`unexpected result = ${result}`);
         } catch (e) {

@@ -1,17 +1,14 @@
 import type * as rpc from 'vscode-jsonrpc/browser';
 
-const pathPrefix = '/@cancellation@/';
+const cancellationPathMarker = '/@cancellation@/';
 
 export function isCancellationPath(path: string): boolean {
-    return path.includes(pathPrefix);
+    return path.includes(cancellationPathMarker);
 }
 
 // Returns relative paths to ensure a subpath doesn't break.
-export function cancellationPath(requestId: rpc.CancellationId, clientId?: string): string {
-    if (clientId) {
-        return `.${pathPrefix}${requestId}/${clientId}`;
-    }
-    return `.${pathPrefix}${requestId}`;
+export function cancellationPath(requestId: rpc.CancellationId): string {
+    return `.${cancellationPathMarker}${requestId}`;
 }
 
 function isClientSource(source: ExtendableMessageEvent['source']): source is Client {
@@ -40,3 +37,9 @@ export namespace SetCanceledEvent {
         );
     }
 }
+
+export interface SwLogMessage {
+    type: 'log';
+    message: string;
+}
+export type SwMessage = SwLogMessage;

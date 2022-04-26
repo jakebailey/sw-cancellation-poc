@@ -4,7 +4,7 @@ import * as rpc from 'vscode-jsonrpc/browser';
 
 import { createSender } from '../shared/cancellation/sender';
 import { log, logThrow, runClient } from '../shared/page';
-import { cancellationPath, SetCanceledEventData } from './common';
+import { cancellationPath, SetCanceledEventData, SwMessage } from './common';
 
 if (!navigator.serviceWorker) {
     logThrow('Service workers are not available');
@@ -31,6 +31,14 @@ async function run() {
     } else {
         logThrow('no service worker');
     }
+
+    navigator.serviceWorker.addEventListener('message', (e) => {
+        const message = e.data as SwMessage;
+
+        if (message.type === 'log') {
+            log(`sw: ${message.message}`);
+        }
+    });
 
     log('starting web worker');
     const worker = new Worker('./sw-worker.js');
