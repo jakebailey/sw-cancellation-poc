@@ -4,7 +4,15 @@ import * as rpc from 'vscode-jsonrpc/browser';
 
 import { createSender } from '../shared/cancellation/sender';
 import { log, logThrow, runClient } from '../shared/page';
-import { cancellationPath, RpcError, RpcRequest, RpcResponse, SetCanceledEventData, SwMessage } from './common';
+import {
+    cancellationPath,
+    DeleteCanceledEventData,
+    RpcError,
+    RpcRequest,
+    RpcResponse,
+    SetCanceledEventData,
+    SwMessage,
+} from './common';
 
 if (!navigator.serviceWorker) {
     logThrow('Service workers are not available');
@@ -59,7 +67,7 @@ async function run() {
         // RPC-based cancellation when receiving requests.
         {
             receiver: rpc.CancellationReceiverStrategy.Message,
-            sender: createSender(sendCancellationMessage),
+            sender: createSender(sendCancellationMessage, deleteCancellationMessage),
             // sender: createSender(sendCancellationRequest),
         }
     );
@@ -68,7 +76,14 @@ async function run() {
 function sendCancellationMessage(id: rpc.CancellationId): void {
     const message: SetCanceledEventData = { type: 'setCanceled', id };
     // Note: this only works outside of a worker; for a version that works inside workers,
-    // see cancelWithHttp.
+    // see sendCancellationRequest.
+    globalThis.navigator.serviceWorker.controller?.postMessage(message);
+}
+
+function deleteCancellationMessage(id: rpc.CancellationId): void {
+    const message: DeleteCanceledEventData = { type: 'deleteCanceled', id };
+    // Note: this only works outside of a worker; for a version that works inside workers,
+    // see deleteCancellationRequest.
     globalThis.navigator.serviceWorker.controller?.postMessage(message);
 }
 
@@ -77,6 +92,13 @@ function sendCancellationRequest(id: rpc.CancellationId): void {
     const path = cancellationPath(id);
     const request = new XMLHttpRequest();
     request.open('POST', path); // OK to be async
+    request.send();
+}
+
+function deleteCancellationRequest(id: rpc.CancellationId): void {
+    const path = cancellationPath(id);
+    const request = new XMLHttpRequest();
+    request.open('DELETE', path); // OK to be async
     request.send();
 }
 

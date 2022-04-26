@@ -3,6 +3,7 @@
 import { debug } from '../debug';
 import {
     cancellationPath,
+    DeleteCanceledEvent,
     isCancellationPath,
     isRpcPath,
     RpcRequest,
@@ -41,6 +42,17 @@ async function getCanceledResponse(pathname: string, clientId: string): Promise<
     return canceled ?? new Response('', { status: 299 });
 }
 
+async function deleteCanceled(pathname: string, clientId: string) {
+    const cachePath = getCachePath(pathname, clientId);
+    const cache = await self.caches.open(cacheName);
+    cache.delete(cachePath);
+}
+
+async function deleteCanceledResponse(pathname: string, clientId: string) {
+    deleteCanceled(pathname, clientId);
+    return new Response('', { status: 200 });
+}
+
 self.addEventListener('install', (e) => {
     debug && console.log('sw: installed');
     // Don't bother waiting for a previous service worker to exit.
@@ -50,16 +62,22 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
     e.waitUntil(async () => {
         debug && console.log('sw: activated');
-        // TODO: figure out the right semantics here. For the cancellation case, it's OK to
-        // always skip waiting and claim all clients, but when RPC is implemented, we don't
-        // want to strand any pending requests that only the old service worker knows about.
-        // To keep things working for demo, always claim and clear caches, but this is not
-        // the right solution.
+        // TODO: figure out the right semantics here. Service workers are "sticky",
+        // in that an old service worker will just stick around until all of its pages
+        // are closed, before the new worker is even able to touch those pages.
+        // We need a way to force an old service worker to exit once it has no pending
+        // RPC requests. For cancellation, we don't have to worry about that, since
+        // it's not the end of the world to kill a service worker or delete its state.
 
-        // Steal clients from other service workers.
+        // Grab control of any uncontrolled pages. Normally, a service worker would
+        // only grab control of pages after a reload, but we want control the moment
+        // the page loads, including the page that first started the service worker.
         await self.clients.claim();
+
         // Delete the cache to prevent buildup (as the browser will not prune the cache);
         // at worst we can't cancel a few pending requests.
+        // TODO: do we need to do this so much now that token deletion has been
+        // implemented? What about using a local variable instead?
         await self.caches.delete(cacheName);
     });
 });
@@ -67,6 +85,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('message', (e) => {
     if (SetCanceledEvent.is(e)) {
         setCanceled(cancellationPath(e.data.id), e.source.id);
+    } else if (DeleteCanceledEvent.is(e)) {
+        deleteCanceled(cancellationPath(e.data.id), e.source.id);
     }
 });
 
@@ -94,6 +114,9 @@ self.addEventListener('fetch', (e) => {
             // Alternative cancellation triggering method; see page.ts
             case 'POST':
                 e.respondWith(setCanceledResponse(u.pathname, e.clientId));
+                break;
+            case 'DELETE':
+                e.respondWith(deleteCanceledResponse(u.pathname, e.clientId));
                 break;
         }
     } else if (isRpcPath(u.pathname)) {

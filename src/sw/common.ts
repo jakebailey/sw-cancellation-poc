@@ -38,6 +38,26 @@ export namespace SetCanceledEvent {
     }
 }
 
+export interface DeleteCanceledEventData {
+    readonly type: 'deleteCanceled';
+    readonly id: rpc.CancellationId;
+}
+
+export interface DeleteCanceledEvent extends ExtendableMessageEvent {
+    readonly data: DeleteCanceledEventData;
+    readonly source: Client;
+}
+
+export namespace DeleteCanceledEvent {
+    export function is(e: ExtendableMessageEvent): e is DeleteCanceledEvent {
+        return (
+            e.data.type === 'deleteCanceled' &&
+            isClientSource(e.source) &&
+            (typeof e.data.id === 'number' || typeof e.data.id === 'string')
+        );
+    }
+}
+
 const rpcPathMarker = '/@rpc@/';
 
 export function isRpcPath(path: string): boolean {
