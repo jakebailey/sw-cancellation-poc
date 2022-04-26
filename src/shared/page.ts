@@ -2,7 +2,7 @@
 
 import * as rpc from 'vscode-jsonrpc/browser';
 
-import { addNumbersRequest, addNumbersSlowRequest } from './requests';
+import { addNumbersRequest, addNumbersSlowRequest, helloRequest } from './requests';
 
 export function log(m = '') {
     document.getElementById('log')!.innerText += `${m}\n`;
@@ -61,6 +61,17 @@ export async function runClient(worker: Worker, cancellationStrategy: rpc.Cancel
             log('addNumbersSlow(1, 2) with cancellation after 1 second');
             const result = await connection.sendRequest(addNumbersSlowRequest, 1, 2, tokenSource.token);
             log(`unexpected result = ${result}`);
+        } catch (e) {
+            log(`threw ${e}`);
+        }
+    });
+
+    log();
+
+    await timeit(async () => {
+        log('hello("worker"), implemented as an RPC call to the main page via the service worker');
+        try {
+            log(`result = ${await connection.sendRequest(helloRequest, 'worker')}`);
         } catch (e) {
             log(`threw ${e}`);
         }

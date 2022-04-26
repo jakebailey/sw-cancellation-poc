@@ -1,7 +1,16 @@
 /// <reference lib="webworker" />
 
 import { debug } from '../debug';
-import { cancellationPath, isCancellationPath, SetCanceledEvent, SwLogMessage } from './common';
+import {
+    cancellationPath,
+    isCancellationPath,
+    isRpcPath,
+    RpcRequest,
+    RpcResponse,
+    SetCanceledEvent,
+    SwLogMessage,
+    SwRpcMessage,
+} from './common';
 
 declare const self: ServiceWorkerGlobalScope;
 export {};
@@ -41,6 +50,12 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
     e.waitUntil(async () => {
         debug && console.log('sw: activated');
+        // TODO: figure out the right semantics here. For the cancellation case, it's OK to
+        // always skip waiting and claim all clients, but when RPC is implemented, we don't
+        // want to strand any pending requests that only the old service worker knows about.
+        // To keep things working for demo, always claim and clear caches, but this is not
+        // the right solution.
+
         // Steal clients from other service workers.
         await self.clients.claim();
         // Delete the cache to prevent buildup (as the browser will not prune the cache);
@@ -81,7 +96,29 @@ self.addEventListener('fetch', (e) => {
                 e.respondWith(setCanceledResponse(u.pathname, e.clientId));
                 break;
         }
+    } else if (isRpcPath(u.pathname)) {
+        e.respondWith(rpcResponse(request, e.clientId));
     }
 });
+
+function clientRpcCall(client: Client, request: RpcRequest): Promise<RpcResponse> {
+    return new Promise((resolve) => {
+        const { port1: receiver, port2: sender } = new MessageChannel();
+        receiver.onmessage = (e) => resolve(e.data);
+        const message: SwRpcMessage = { type: 'rpc', request, port: sender };
+        client.postMessage(message, [sender]);
+    });
+}
+
+async function rpcResponse(request: Request, clientId: string): Promise<Response> {
+    const client = await self.clients.get(clientId);
+    if (!client) {
+        return new Response('no client', { status: 500 });
+    }
+
+    const body: RpcRequest = await request.json();
+    const response = await clientRpcCall(client, body);
+    return new Response(JSON.stringify(response), { status: 200 });
+}
 
 debug && console.log('sw: loaded');

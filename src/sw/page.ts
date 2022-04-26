@@ -4,7 +4,7 @@ import * as rpc from 'vscode-jsonrpc/browser';
 
 import { createSender } from '../shared/cancellation/sender';
 import { log, logThrow, runClient } from '../shared/page';
-import { cancellationPath, SetCanceledEventData, SwMessage } from './common';
+import { cancellationPath, RpcError, RpcRequest, RpcResponse, SetCanceledEventData, SwMessage } from './common';
 
 if (!navigator.serviceWorker) {
     logThrow('Service workers are not available');
@@ -37,6 +37,16 @@ async function run() {
 
         if (message.type === 'log') {
             log(`sw: ${message.message}`);
+        } else if (message.type === 'rpc') {
+            const { request, port } = message;
+
+            function send(m: RpcResponse | RpcError) {
+                port.postMessage(m);
+            }
+
+            handleRpcCall(request)
+                .then(send)
+                .catch((e) => send({ error: { code: -32000, message: e.toString() } }));
         }
     });
 
@@ -68,4 +78,13 @@ function sendCancellationRequest(id: rpc.CancellationId): void {
     const request = new XMLHttpRequest();
     request.open('POST', path); // OK to be async
     request.send();
+}
+
+async function handleRpcCall(request: RpcRequest): Promise<RpcResponse> {
+    if (request.method === 'hello') {
+        return {
+            result: `Hello from the page, ${request.params}!`,
+        };
+    }
+    throw new Error(`unsupported method ${request.method}`);
 }

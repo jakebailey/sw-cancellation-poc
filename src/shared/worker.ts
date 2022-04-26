@@ -14,7 +14,10 @@ function throwIfCancellationRequested(cancellationToken: rpc.CancellationToken) 
     }
 }
 
-export function runServer(cancellationStrategy: rpc.CancellationStrategy) {
+export function runServer(
+    cancellationStrategy: rpc.CancellationStrategy,
+    preListen?: (conn: rpc.MessageConnection) => void
+) {
     const connection = rpc.createMessageConnection(
         new rpc.BrowserMessageReader(self),
         new rpc.BrowserMessageWriter(self),
@@ -39,6 +42,8 @@ export function runServer(cancellationStrategy: rpc.CancellationStrategy) {
         }
         return a + b;
     });
+
+    preListen?.(connection);
 
     connection.listen();
 

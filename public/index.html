@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Service worker cancellation proof-of-concept</title>
+        <title>Service worker cancellation/RPC proof-of-concept</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
         <style>
             @media (prefers-color-scheme: dark) {
@@ -20,44 +20,34 @@
             h1 {
                 text-align: center;
             }
+            p {
+                text-align: justify;
+            }
         </style>
     </head>
 
     <body>
-        <h1>Service worker cancellation proof-of-concept</h1>
+        <h1>Service worker cancellation/RPC proof-of-concept</h1>
 
         <p>
             <img id="diagram" src="./diagram.png" alt="Diagram of service worker based cancellation implementation" />
         </p>
 
         <p>
-            This is a proof-of-concept for cancellation using service workers. It works by having the service worker
-            intercept requests to the URLs <code>/@cancellation@/*</code>, which effectively turns the service worker
-            into an HTTP server.
+            This is a proof-of-concept for in-browser communication using service workers, enabling <em>synchronous</em>
+            cancellation tokens and RPC calls in web workers. The service worker intercepts HTTP requests to paths like
+            <code>/@cancellation@/{id}</code>, effectively turning it into an HTTP server accessible to the current
+            site. Since workers can make HTTP requests via <code>XMLHttpRequest</code>, workers can communicate with the
+            main page synchronously, whereas the actual HTTP handler in the service worker is asynchronous and able to
+            call asynchronous APIs. See above for a diagram of the cancellation implementation, or the code
+            <a href="https://github.com/jakebailey/sw-cancellation-poc">here</a>.
         </p>
 
         <p>
-            On the worker side, a synchronous HTTP call can be used to check for cancellation, which allows
-            <code>isCancellationRequested</code> checks to be made without waiting for a cancellation message to be read
-            from the incoming stream (which may not be possible if the current operation is synchronous.)
-        </p>
-
-        <p>The function to check for cancellation looks roughly like:</p>
-
-        <pre>
-    function isCancellationRequested(id: rpc.CancellationId): boolean {
-        const request = new XMLHttpRequest();
-        request.open('GET', `/@cancellation@/${id}`, /* async */ false);
-        request.send();
-        return request.status === 200;
-    }
-        </pre>
-
-        <p>The code for this page lives <a href="https://github.com/jakebailey/sw-cancellation-poc">here</a>.</p>
-
-        <p>
-            Below is a console log of the page and a worker communicating over JSON-RPC, making and handling a few
-            requests to a number adder handler.
+            Below is a console log of the page and a worker communicating over JSON-RPC, with the page making requests
+            to two <code>addNumbers</code> handlers in the worker (one that's fast, one that's slow but able to be
+            canceled). As an added bonus, the page makes a call to a <code>hello</code> handler, which the worker
+            implements as an RPC call back to the page itself (again, synchronously!).
         </p>
 
         <br />

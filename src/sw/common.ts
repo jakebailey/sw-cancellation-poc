@@ -38,8 +38,42 @@ export namespace SetCanceledEvent {
     }
 }
 
+const rpcPathMarker = '/@rpc@/';
+
+export function isRpcPath(path: string): boolean {
+    return path.includes(rpcPathMarker);
+}
+
+// Returns relative paths to ensure a subpath doesn't break.
+export function rpcPath(): string {
+    return `.${rpcPathMarker}`;
+}
+
+export interface RpcRequest {
+    method: string;
+    params: any;
+}
+
+export interface RpcResponse {
+    result: any;
+}
+
+export interface RpcError {
+    error: {
+        code: number;
+        message: string;
+    };
+}
+
 export interface SwLogMessage {
     type: 'log';
     message: string;
 }
-export type SwMessage = SwLogMessage;
+
+export interface SwRpcMessage {
+    type: 'rpc';
+    request: RpcRequest;
+    port: MessagePort;
+}
+
+export type SwMessage = SwLogMessage | SwRpcMessage;
