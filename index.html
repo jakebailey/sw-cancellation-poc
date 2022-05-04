@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Service worker cancellation/RPC proof-of-concept</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+        <style>
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --background-body: #303030;
+                    --background: #303030;
+                    --background-alt: #303030;
+                    --button-hover: #444;
+                }
+                #diagram {
+                    filter: invert(81.25%); /* (0xFF-0x30)/0xFF */
+                }
+            }
+            h1 {
+                text-align: center;
+            }
+            p {
+                text-align: justify;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Service worker cancellation/RPC proof-of-concept</h1>
+
+        <p>
+            <img id="diagram" src="./diagram.png" alt="Diagram of service worker based cancellation implementation" />
+        </p>
+
+        <p>
+            This is a proof-of-concept for in-browser communication using service workers, enabling <em>synchronous</em>
+            cancellation tokens and RPC calls in web workers. The service worker intercepts HTTP requests to paths like
+            <code>/@cancellation@/{id}</code>, effectively turning it into an HTTP server accessible to the current
+            site. Since workers can make HTTP requests via <code>XMLHttpRequest</code>, workers can communicate with the
+            main page synchronously, whereas the actual HTTP handler in the service worker is asynchronous and able to
+            call asynchronous APIs. See above for a diagram of the cancellation implementation, or the code
+            <a href="https://github.com/jakebailey/sw-cancellation-poc">here</a>.
+        </p>
+
+        <p>
+            Below is a console log of the page and a worker communicating over JSON-RPC, with the page making requests
+            to two <code>addNumbers</code> handlers in the worker (one that's fast, one that's slow but able to be
+            canceled). As an added bonus, the page makes a call to a <code>hello</code> handler, which the worker
+            implements as an RPC call back to the page itself (again, synchronously!).
+        </p>
+
+        <br />
+
+        <pre id="log"></pre>
+    </body>
+
+    <script src="./sw-page.js"></script>
+</html>
