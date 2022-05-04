@@ -25,7 +25,7 @@ function helloHandler(name: string): string {
         })
     );
 
-    const response: RpcResponse = JSON.parse(request.responseText)
+    const response: RpcResponse = JSON.parse(request.responseText);
     return response.result;
 }
 

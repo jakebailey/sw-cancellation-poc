@@ -86,4 +86,3 @@ export function createReceiver(
         createCancellationTokenSource: (id) => new TokenSource(() => isCancellationRequested(id)),
     };
 }
-
